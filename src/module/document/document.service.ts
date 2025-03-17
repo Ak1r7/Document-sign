@@ -52,11 +52,11 @@ export class DocumentService {
     await this.documentRepo.save(document);
 
     for (const recipient of recipients) {
-      await this.mailService.sendMail({
-        to: recipient.email,
-        subject: 'Документ для подписи',
-        text: `Вам отправлен документ ${document.name} для подписания. Перейдите по ссылке: http://localhost:3000/documents/sign/${document.id}`,
-      });
+      await this.mailService.sendMail(
+        recipient.email,
+        'Документ для подписи',
+        `Вам отправлен документ ${document.name} для подписания. Перейдите по ссылке: http://localhost:3000/documents/sign/${document.id}`
+      );      
     }
 
     return { message: 'Документ отправлен на подпись', document };
@@ -78,6 +78,12 @@ export class DocumentService {
     await this.documentRepo.save(document);
   
     return { message: 'Документ подписан', document };
+  }
+  
+  async getDocumentById(documentId: number, user: UserEntity) {
+    return this.documentRepo.findOne({
+      where: { id: documentId, owner: user },
+    });
   }
   
 }

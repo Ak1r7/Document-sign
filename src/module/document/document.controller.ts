@@ -10,6 +10,7 @@ import {
   Body,
   ParseFilePipe,
   ParseIntPipe,
+  NotFoundException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DocumentService } from './document.service';
@@ -32,6 +33,7 @@ import {
   FileTypeValidator,
   MaxFileSizeValidator,
 } from '@nestjs/common/pipes';
+import { MailService } from '../mail/mail.service';
 
 @ApiTags('documents')
 @ApiBearerAuth()
@@ -41,6 +43,7 @@ export class DocumentController {
   constructor(
     private documentService: DocumentService,
     private readonly logService: DocumentLogService,
+    private readonly mailService: MailService,
   ) {}
 
   @Post('upload')
@@ -118,23 +121,39 @@ export class DocumentController {
   }
 
   @Post('send/:documentId')
-  @ApiOperation({ summary: 'Отправить документ на подпись' })
+  @ApiOperation({ summary: 'Отправить документ на подпись по email' })
   @ApiParam({ name: 'documentId', required: true, description: 'ID документа' })
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        recipients: {
-          type: 'array',
-          items: { type: 'number' },
-          description: 'Массив ID получателей',
-        },
+        email: { type: 'string', description: 'Email получателя' },
       },
     },
   })
-  async sendForSignature(@Param('documentId', ParseIntPipe) documentId: number, @Body('recipients') recipients: number[]) {
-    return this.documentService.sendForSignature(documentId, recipients);
+  async sendDocumentForSignature(
+    @Param('documentId', ParseIntPipe) documentId: number,
+    @Body('email') email: string,
+    @User() user: UserEntity,
+  ) {
+    const document = await this.documentService.getDocumentById(documentId, user);
+  
+    if (!document) {
+      throw new NotFoundException('Документ не найден');
+    }
+  
+    const downloadUrl = `http://yourdomain.com/api/documents/download/${document.path}`;
+  
+    await this.mailService.sendMail(
+      email,
+      'Документ для подписания',
+      `Здравствуйте! Вам отправлен документ на подпись. Вы можете скачать его по ссылке: ${downloadUrl}`
+    );
+    
+
+    return { message: 'Документ отправлен на подпись', email };
   }
+  
 
   @Post('sign/:documentId')
   @ApiOperation({ summary: 'Подписать документ' })
