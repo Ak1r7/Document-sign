@@ -8,14 +8,14 @@ export class DocumentLogEntity {
   id: number;
 
   @ManyToOne(() => UserEntity, (user) => user.logs)
-  user: UserEntity; // Кто сделал действие
+  user: UserEntity; 
 
   @ManyToOne(() => DocumentEntity, (document) => document.logs, { onDelete: 'CASCADE' })
-  document: DocumentEntity; // Какой документ
+  document: DocumentEntity; 
 
   @Column()
-  action: string; // Действие: uploaded, sent, signed
+  action: string;
 
   @CreateDateColumn()
-  createdAt: Date; // Дата и время
+  createdAt: Date; 
 }
