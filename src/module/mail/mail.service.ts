@@ -16,12 +16,14 @@ export class MailService {
     });
   }
 
-  async sendMail(to: string, subject: string, text: string) {
+  async sendMail(to: string, subject: string, text: string, senderEmail: string) {
     await this.transporter.sendMail({
-      from: this.configService.get<string>('EMAIL_USER'),
+      from: this.configService.get<string>('EMAIL_USER'), 
+      replyTo: senderEmail, 
       to,
       subject,
       text,
     });
   }
+  
 }

@@ -147,8 +147,10 @@ export class DocumentController {
     await this.mailService.sendMail(
       email,
       'Документ для подписания',
-      `Здравствуйте! Вам отправлен документ на подпись. Вы можете скачать его по ссылке: ${downloadUrl}`
+      `Здравствуйте! Вам отправлен документ на подпись. Вы можете скачать его по ссылке: ${downloadUrl}`,
+      user.email 
     );
+    
     
 
     return { message: 'Документ отправлен на подпись', email };
